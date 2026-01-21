@@ -59,4 +59,9 @@ jobs:
       - name: Publish backend
         working-directory: backend
         run: dotnet publish -c Release -o publish
-
+  # Call CD pipeline
+  call-cd:
+    needs: [frontend-ci, backend-ci]
+    uses: ./.github/workflows/cd-deploy.yml
+    with:
+      run_id: ${{ github.run_id }}
