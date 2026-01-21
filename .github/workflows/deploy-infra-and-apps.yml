@@ -1,15 +1,22 @@
 name: CD Deploy
 
-#on:
-#  workflow_run:
-#    workflows: ["CI Release"]
-#    types:
-#      - completed
 on:
-  workflow_call:
+  workflow_run:
+    workflows: ["CI Release"]
+    types:
+      - completed
+# on:
+#   workflow_call:
+#     inputs:
+#       run_id:
+#         required: true
+#         type: string
+
+  workflow_dispatch:
     inputs:
       run_id:
-        required: true
+        description: "CI run ID to deploy"
+        required: false
         type: string
 
 env:
@@ -57,7 +64,6 @@ jobs:
             location=${{ secrets.AZURE_REGION }}
             swaLocation=${{ secrets.AZURE_SWA_REGION }}
             identifier=${{ vars.AZURE_RESOURCE_IDENTIFIER }}
-
   # Deploy Backend
   deploy_backend:
     permissions:
@@ -74,6 +80,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: backend-publish
+          run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
           path: backend-publish
 
       - name: Login to Azure
@@ -105,6 +112,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
+          run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
           path: frontend-dist
 
       - name: Login to Azure
