@@ -61,9 +61,9 @@ jobs:
           name: backend-publish
           path: backend/publish
 
-  call-cd:
-    name: Call CD Deploy
-    needs: [frontend-ci, backend-ci]
-    uses: ./.github/workflows/deploy-infra-and-apps.yml
-    with:
-      run_id: ${{ github.run_id }}
+  # call-cd:
+  #   name: Call CD Deploy
+  #   needs: [frontend-ci, backend-ci]
+  #   uses: ./.github/workflows/deploy-infra-and-apps.yml
+  #   with:
+  #     run_id: ${{ github.run_id }}
