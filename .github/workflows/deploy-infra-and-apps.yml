@@ -1,10 +1,11 @@
 name: CD Deploy
 
 on:
-  workflow_run:
-    workflows: ["CI Release"]
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      run_id:
+        required: true
+        type: string
 
   workflow_dispatch:
     inputs:
