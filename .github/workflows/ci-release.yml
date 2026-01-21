@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -24,7 +25,7 @@ jobs:
       - name: Get version from git tag
         run: echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
 
@@ -40,13 +41,15 @@ jobs:
           name: frontend-dist
           path: frontend/dist
 
-  # Backend Releas
+
+  # Backend Release
   backend-ci:
     name: Backend - Publish & Artifact
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
@@ -56,6 +59,10 @@ jobs:
       - name: Publish backend
         working-directory: backend
         run: dotnet publish -c Release -o publish
+
+      # 🔎 Debug (peut être supprimé après validation)
+      - name: Debug backend publish folder
+        run: ls -la backend/publish
 
       - name: Upload backend artifact
         uses: actions/upload-artifact@v4
