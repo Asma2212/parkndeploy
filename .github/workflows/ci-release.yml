@@ -3,15 +3,17 @@ name: CI Release
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+' # MAJOR.MINOR.PATCH
 
 jobs:
+  # Frontend CI
   frontend-ci:
     name: Frontend - Build & Artifact
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -20,8 +22,16 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      # --- Inject Git tag into env ---
       - name: Get version from git tag
-        run: echo "APP_VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+        run: |
+          TAG_VERSION=${GITHUB_REF_NAME#refs/tags/}
+          echo "APP_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+          echo "VITE_APP_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+          echo "Setting package.json version to $TAG_VERSION"
+          # Update package.json automatically
+          jq --arg ver "$TAG_VERSION" '.version = $ver' frontend/package.json > frontend/package.tmp.json
+          mv frontend/package.tmp.json frontend/package.json
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -31,7 +41,7 @@ jobs:
         working-directory: frontend
         run: npm run build
         env:
-          VITE_APP_VERSION: ${{ env.APP_VERSION }}
+          VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
 
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
@@ -39,12 +49,14 @@ jobs:
           name: frontend-dist
           path: frontend/dist
 
+  # Backend CI
   backend-ci:
     name: Backend - Publish & Artifact
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
@@ -61,9 +73,10 @@ jobs:
           name: backend-publish
           path: backend/publish
 
-  # call-cd:
-  #   name: Call CD Deploy
-  #   needs: [frontend-ci, backend-ci]
-  #   uses: ./.github/workflows/deploy-infra-and-apps.yml
-  #   with:
-  #     run_id: ${{ github.run_id }}
+  # Trigger CD workflow
+  call-cd:
+    name: Call CD Deploy
+    needs: [frontend-ci, backend-ci]
+    uses: ./.github/workflows/deploy-infra-and-apps.yml
+    with:
+      run_id: ${{ github.run_id }}

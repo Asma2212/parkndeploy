@@ -1,11 +1,11 @@
 name: CD Deploy
 
 on:
-  # workflow_call:
-  #   inputs:
-  #     run_id:
-  #       required: false
-  #       type: string
+  workflow_call:
+    inputs:
+      run_id:
+        required: false
+        type: string
 
   workflow_dispatch:
     inputs:
