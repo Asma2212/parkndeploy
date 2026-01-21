@@ -1,12 +1,10 @@
 name: CD Deploy
 
 on:
-  workflow_call:
-    inputs:
-      run_id:
-        description: "CI run ID to deploy artifacts from"
-        required: true
-        type: string
+  workflow_run:
+    workflows: ["CI Release"]
+    types:
+      - completed
 
   workflow_dispatch:
     inputs:
@@ -71,6 +69,9 @@ jobs:
     environment: production
 
     steps:
+      - name: Install GitHub CLI
+        run: sudo apt update && sudo apt install gh -y
+
       - name: Determine run_id
         id: get_run_id
         run: |
@@ -80,7 +81,8 @@ jobs:
             echo "RUN_ID=${{ github.event.inputs.run_id }}" >> $GITHUB_ENV
           fi
 
-      - uses: actions/download-artifact@v4
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
         with:
           name: backend-publish
           run-id: ${{ env.RUN_ID }}
@@ -109,6 +111,9 @@ jobs:
     environment: production
 
     steps:
+      - name: Install GitHub CLI
+        run: sudo apt update && sudo apt install gh -y
+
       - name: Determine run_id
         id: get_run_id_frontend
         run: |
@@ -118,7 +123,8 @@ jobs:
             echo "RUN_ID=${{ github.event.inputs.run_id }}" >> $GITHUB_ENV
           fi
 
-      - uses: actions/download-artifact@v4
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           run-id: ${{ env.RUN_ID }}
