@@ -5,12 +5,6 @@ on:
     workflows: ["CI Release"]
     types:
       - completed
-# on:
-#   workflow_call:
-#     inputs:
-#       run_id:
-#         required: true
-#         type: string
 
   workflow_dispatch:
     inputs:
@@ -24,7 +18,7 @@ env:
 
 jobs:
   # Deploy Infrastructure
-  deploy_infrastructure: 
+  deploy_infrastructure:
     permissions:
       id-token: write
       contents: read
@@ -64,6 +58,7 @@ jobs:
             location=${{ secrets.AZURE_REGION }}
             swaLocation=${{ secrets.AZURE_SWA_REGION }}
             identifier=${{ vars.AZURE_RESOURCE_IDENTIFIER }}
+
   # Deploy Backend
   deploy_backend:
     permissions:
@@ -81,6 +76,7 @@ jobs:
         with:
           name: backend-publish
           path: backend-publish
+          run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -112,6 +108,7 @@ jobs:
         with:
           name: frontend-dist
           path: frontend-dist
+          run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
 
       - name: Login to Azure
         uses: azure/login@v2

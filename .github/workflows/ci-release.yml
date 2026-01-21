@@ -3,7 +3,7 @@ name: CI Release
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'   # MAJOR.MINOR.PATCH
 
 jobs:
   # Frontend Release
@@ -40,6 +40,7 @@ jobs:
         with:
           name: frontend-dist
           path: frontend/dist
+
   # Backend Release
   backend-ci:
     name: Backend - Publish & Artifact
@@ -63,10 +64,3 @@ jobs:
         with:
           name: backend-publish
           path: backend/publish
-
-  # Call CD pipeline (optionnel)
-  # call-cd:
-  #   needs: [frontend-ci, backend-ci]
-  #   uses: ./.github/workflows/cd-deploy.yml
-  #   with:
-  #     run_id: ${{ github.run_id }}
