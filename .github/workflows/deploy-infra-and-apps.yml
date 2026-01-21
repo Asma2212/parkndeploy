@@ -1,15 +1,17 @@
 name: CD Deploy
 
 on:
+  # Trigger automatique après la CI Release
   workflow_run:
     workflows: ["CI Release"]
     types:
       - completed
 
+  # Trigger manuel possible
   workflow_dispatch:
     inputs:
       run_id:
-        description: "CI run ID to deploy"
+        description: "CI run ID to deploy (optional)"
         required: false
         type: string
 
@@ -78,6 +80,9 @@ jobs:
           path: backend-publish
           run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
 
+      - name: Debug backend artifact
+        run: ls -la backend-publish
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -109,6 +114,9 @@ jobs:
           name: frontend-dist
           path: frontend-dist
           run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
+
+      - name: Debug frontend artifact
+        run: ls -la frontend-dist
 
       - name: Login to Azure
         uses: azure/login@v2
