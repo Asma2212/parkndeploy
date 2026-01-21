@@ -16,7 +16,6 @@ function App() {
     queryFn: () => ParkingsAngersEndpointsQueryMethods.getAllParkings(parkingName),
   });
 
-  console.log(parkingName)
 
   return (
     <div className="flex flex-col gap-5 items-center">
@@ -31,6 +30,10 @@ function App() {
       {isPending && <LoadingSpinner className="mr-2 h-4 w-4 animate-spin" />}
       {isError && <span>Something went wrong with the backend ...</span>}
       {data && <ParkingList parkings={data.parkings} />}
+
+      <footer className="mt-4 text-sm text-gray-500">
+        Version: {APP_VERSION}
+      </footer>
     </div>
   );
 }
