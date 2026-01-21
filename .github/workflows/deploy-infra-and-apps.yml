@@ -1,18 +1,11 @@
 name: CD Deploy
 
 on:
-  # Trigger automatique après la CI Release
-  workflow_run:
-    workflows: ["CI Release"]
-    types:
-      - completed
-
-  # Trigger manuel possible
   workflow_dispatch:
     inputs:
       run_id:
-        description: "CI run ID to deploy (optional)"
-        required: false
+        description: "CI run ID to deploy"
+        required: true
         type: string
 
 env:
@@ -32,7 +25,8 @@ jobs:
       staticWebAppName: ${{ steps.bicep_deploy.outputs.staticWebAppName }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -71,17 +65,15 @@ jobs:
     environment: production
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Download backend artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-publish
+          run-id: ${{ github.event.inputs.run_id }}
           path: backend-publish
-          run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
-
-      - name: Debug backend artifact
-        run: ls -la backend-publish
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -106,17 +98,15 @@ jobs:
     environment: production
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
+          run-id: ${{ github.event.inputs.run_id }}
           path: frontend-dist
-          run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
-
-      - name: Debug frontend artifact
-        run: ls -la frontend-dist
 
       - name: Login to Azure
         uses: azure/login@v2
