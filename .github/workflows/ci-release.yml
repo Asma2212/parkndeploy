@@ -3,7 +3,7 @@ name: CI Release
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'   # MAJOR.MINOR.PATCH
+      - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   # Frontend Release
@@ -23,7 +23,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Get version from git tag
-        run: echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+        run: echo "VITE_APP_VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -33,15 +33,13 @@ jobs:
         working-directory: frontend
         run: npm run build
         env:
-          VITE_APP_VERSION: ${{ env.VERSION }}
+          VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
 
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist
-
-
   # Backend Release
   backend-ci:
     name: Backend - Publish & Artifact
@@ -59,9 +57,16 @@ jobs:
       - name: Publish backend
         working-directory: backend
         run: dotnet publish -c Release -o publish
-  # Call CD pipeline
-  #call-cd:
-  #  needs: [frontend-ci, backend-ci]
-  #  uses: ./.github/workflows/deploy-infra-and-apps.yml
-  #  with:
-  #    run_id: ${{ github.run_id }}
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-publish
+          path: backend/publish
+
+  # Call CD pipeline (optionnel)
+  # call-cd:
+  #   needs: [frontend-ci, backend-ci]
+  #   uses: ./.github/workflows/cd-deploy.yml
+  #   with:
+  #     run_id: ${{ github.run_id }}

@@ -80,7 +80,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: backend-publish
-          run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
           path: backend-publish
 
       - name: Login to Azure
@@ -112,7 +111,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          run-id: ${{ inputs.run_id || github.event.workflow_run.id }}
           path: frontend-dist
 
       - name: Login to Azure
