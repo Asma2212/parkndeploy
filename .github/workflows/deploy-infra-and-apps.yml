@@ -81,10 +81,15 @@ jobs:
       - name: Determine run_id
         id: get_run_id
         run: |
+          echo "Checking if run_id is provided..."
           if [ -z "${{ inputs.run_id }}" ]; then
-            echo "RUN_ID=$(gh run list --workflow='CI Release' --branch main --limit 1 --json databaseId -q '.[0].databaseId')" >> $GITHUB_ENV
+            RUN_ID=$(gh run list --workflow='CI Release' --branch main --limit 1 --json databaseId -q '.[0].databaseId')
+            echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+            echo "Using latest CI run ID: $RUN_ID"
           else
             echo "RUN_ID=${{ inputs.run_id }}" >> $GITHUB_ENV
+            echo "Using provided run_id: ${{ inputs.run_id }}"
+          fi
 
       - name: Download backend artifact
         uses: actions/download-artifact@v4
@@ -116,12 +121,17 @@ jobs:
         run: sudo apt update && sudo apt install -y gh
 
       - name: Determine run_id
-        id: get_run_id_frontend
+        id: get_run_id
         run: |
+          echo "Checking if run_id is provided..."
           if [ -z "${{ inputs.run_id }}" ]; then
-            echo "RUN_ID=$(gh run list --workflow='CI Release' --branch main --limit 1 --json databaseId -q '.[0].databaseId')" >> $GITHUB_ENV
+            RUN_ID=$(gh run list --workflow='CI Release' --branch main --limit 1 --json databaseId -q '.[0].databaseId')
+            echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+            echo "Using latest CI run ID: $RUN_ID"
           else
             echo "RUN_ID=${{ inputs.run_id }}" >> $GITHUB_ENV
+            echo "Using provided run_id: ${{ inputs.run_id }}"
+          fi
 
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
