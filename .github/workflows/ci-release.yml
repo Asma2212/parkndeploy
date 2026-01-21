@@ -9,9 +9,9 @@ jobs:
   frontend-ci:
     name: Frontend - Build & Artifact
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -42,9 +42,9 @@ jobs:
   backend-ci:
     name: Backend - Publish & Artifact
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
@@ -60,3 +60,10 @@ jobs:
         with:
           name: backend-publish
           path: backend/publish
+
+  call-cd:
+    name: Call CD Deploy
+    needs: [frontend-ci, backend-ci]
+    uses: ./.github/workflows/deploy-infra-and-apps.yml
+    with:
+      run_id: ${{ github.run_id }}

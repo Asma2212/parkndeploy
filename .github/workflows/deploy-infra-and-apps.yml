@@ -1,6 +1,12 @@
 name: CD Deploy
 
 on:
+  workflow_call:
+    inputs:
+      run_id:
+        required: false
+        type: string
+
   workflow_dispatch:
     inputs:
       run_id:
@@ -35,7 +41,7 @@ jobs:
 
       - name: Create resource group if not exists
         run: |
-          az group show --name ${{ env.AZURE_RG_NAME }} ||
+          az group show --name ${{ env.AZURE_RG_NAME }} || \
           az group create --name ${{ env.AZURE_RG_NAME }} --location ${{ secrets.AZURE_REGION }}
 
       - name: Deploy Bicep
@@ -56,11 +62,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy_infrastructure
     environment: production
+
     steps:
+      - name: Install GitHub CLI
+        run: sudo apt update && sudo apt install -y gh
+
+      - name: Determine run_id
+        id: get_run_id
+        run: |
+          if [ -z "${{ inputs.run_id }}" ]; then
+            echo "RUN_ID=$(gh run list --workflow='CI Release' --branch main --limit 1 --json databaseId -q '.[0].databaseId')" >> $GITHUB_ENV
+          else
+            echo "RUN_ID=${{ inputs.run_id }}" >> $GITHUB_ENV
+
       - name: Download backend artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-publish
+          run-id: ${{ env.RUN_ID }}
           path: backend-publish
 
       - name: Login to Azure
@@ -80,11 +99,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy_infrastructure
     environment: production
+
     steps:
+      - name: Install GitHub CLI
+        run: sudo apt update && sudo apt install -y gh
+
+      - name: Determine run_id
+        id: get_run_id_frontend
+        run: |
+          if [ -z "${{ inputs.run_id }}" ]; then
+            echo "RUN_ID=$(gh run list --workflow='CI Release' --branch main --limit 1 --json databaseId -q '.[0].databaseId')" >> $GITHUB_ENV
+          else
+            echo "RUN_ID=${{ inputs.run_id }}" >> $GITHUB_ENV
+
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
+          run-id: ${{ env.RUN_ID }}
           path: frontend-dist
 
       - name: Login to Azure
