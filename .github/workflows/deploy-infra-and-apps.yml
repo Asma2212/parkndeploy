@@ -4,8 +4,15 @@ on:
   workflow_call:
     inputs:
       run_id:
-        description: "CI run ID to deploy"
+        description: "CI run ID to deploy artifacts from"
         required: true
+        type: string
+
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "CI run ID to deploy (optional, latest will be used if empty)"
+        required: false
         type: string
 
 env:
@@ -64,13 +71,19 @@ jobs:
     environment: production
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Determine run_id
+        id: get_run_id
+        run: |
+          if [ -z "${{ github.event.inputs.run_id }}" ]; then
+            echo "RUN_ID=$(gh run list --workflow='CI Release' --branch main --limit 1 --json databaseId -q '.[0].databaseId')" >> $GITHUB_ENV
+          else
+            echo "RUN_ID=${{ github.event.inputs.run_id }}" >> $GITHUB_ENV
+          fi
 
-      - name: Download backend artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: backend-publish
-          run-id: ${{ inputs.run_id }}
+          run-id: ${{ env.RUN_ID }}
           path: backend-publish
 
       - name: Login to Azure
@@ -96,13 +109,19 @@ jobs:
     environment: production
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Determine run_id
+        id: get_run_id_frontend
+        run: |
+          if [ -z "${{ github.event.inputs.run_id }}" ]; then
+            echo "RUN_ID=$(gh run list --workflow='CI Release' --branch main --limit 1 --json databaseId -q '.[0].databaseId')" >> $GITHUB_ENV
+          else
+            echo "RUN_ID=${{ github.event.inputs.run_id }}" >> $GITHUB_ENV
+          fi
 
-      - name: Download frontend artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          run-id: ${{ inputs.run_id }}
+          run-id: ${{ env.RUN_ID }}
           path: frontend-dist
 
       - name: Login to Azure
