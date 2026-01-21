@@ -1,7 +1,7 @@
 name: CD Deploy
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       run_id:
         description: "CI run ID to deploy"
@@ -25,8 +25,7 @@ jobs:
       staticWebAppName: ${{ steps.bicep_deploy.outputs.staticWebAppName }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -65,14 +64,13 @@ jobs:
     environment: production
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Download backend artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-publish
-          run-id: ${{ github.event.inputs.run_id }}
+          run-id: ${{ inputs.run_id }}
           path: backend-publish
 
       - name: Login to Azure
@@ -98,14 +96,13 @@ jobs:
     environment: production
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          run-id: ${{ github.event.inputs.run_id }}
+          run-id: ${{ inputs.run_id }}
           path: frontend-dist
 
       - name: Login to Azure
